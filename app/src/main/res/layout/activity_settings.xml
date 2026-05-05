@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0f172a">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Settings"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#ffffff"
+            android:gravity="center"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Alarm Volume -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Alarm Volume"
+            android:textColor="#e2e8f0"/>
+
+        <SeekBar
+            android:id="@+id/seekVolume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"/>
+
+        <!-- Detection Sensitivity -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Detection Sensitivity"
+            android:textColor="#e2e8f0"
+            android:layout_marginTop="20dp"/>
+
+        <SeekBar
+            android:id="@+id/seekSensitivity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"/>
+
+        <!-- Location Sharing -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Location Sharing"
+            android:textColor="#e2e8f0"
+            android:layout_marginTop="20dp"/>
+
+        <Switch
+            android:id="@+id/switchLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enable Location Sharing"
+            android:textColor="#ffffff"/>
+
+        <Button
+            android:id="@+id/btnBackSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Back"
+            android:layout_marginTop="30dp"
+            android:backgroundTint="#2563eb"
+            android:textColor="#ffffff"/>
+
+    </LinearLayout>
+
+</ScrollView>

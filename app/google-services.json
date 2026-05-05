@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "921006381014",
+    "project_id": "smartaccidentdetection-73bad",
+    "storage_bucket": "smartaccidentdetection-73bad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:921006381014:android:ab9353b1cfe95d05107677",
+        "android_client_info": {
+          "package_name": "AndroidManifest.xml"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdWgH59r_AHsUOnxh1FcixVx9d_BT7UfM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

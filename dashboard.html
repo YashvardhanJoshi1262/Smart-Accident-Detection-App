@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Accident Detection – Live Dashboard</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+
+      /* animated background */
+      background: linear-gradient(135deg, #0f172a, #1e1b4b, #312e81, #1e293b);
+      background-size: 400% 400%;
+      animation: bgShift 20s ease infinite;
+
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    @keyframes bgShift {
+      0% { background-position: 0% 0%; }
+      50% { background-position: 100% 100%; }
+      100% { background-position: 0% 0%; }
+    }
+
+    .topbar {
+      height: 56px;
+      background: rgba(30,41,59,0.85);
+      backdrop-filter: blur(6px);
+      color: #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 18px;
+      font-size: 15px;
+      font-weight: 500;
+      border-bottom: 1px solid rgba(148,163,184,0.35);
+    }
+
+    .topbar button {
+      background: #2563eb;
+      border: none;
+      padding: 7px 14px;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .main {
+      display: grid;
+      /* 🔹 Map smaller, table wider */
+      grid-template-columns: 1.2fr 1.8fr;
+      height: calc(100vh - 56px);
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .map-container {
+      background: rgba(255,255,255,0.05);
+      border-radius: 14px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+      overflow: hidden;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.09);
+      position: relative;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    .map-title {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(15,23,42,0.85);
+      padding: 6px 12px;
+      border-radius: 6px;
+      color: #f1f5f9;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid rgba(148,163,184,0.3);
+    }
+
+    .side-panel {
+      background: rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      font-size: 16px;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 6px;
+    }
+
+    .refresh-info {
+      font-size: 12px;
+      color: #cbd5e1;
+      margin-bottom: 10px;
+    }
+
+    .table-wrapper {
+      overflow-y: auto;
+      flex: 1;
+      border-radius: 8px;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(148,163,184,0.25);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      color: #e2e8f0;
+    }
+
+    thead {
+      background: rgba(30,41,59,0.9);
+      color: #f1f5f9;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    th, td {
+  padding: 10px;                  /* uniform spacing */
+  border-bottom: 1px solid rgba(148,163,184,0.25);
+  white-space: nowrap;
+  text-align: left;               /* ensure alignment */
+}
+
+
+    tbody tr:hover {
+      background: rgba(255,255,255,0.07);
+      cursor: pointer;
+    }
+
+    .status-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-block;
+  margin: 0;                 /* fix left shift */
+}
+
+
+    .active {
+      background: rgba(248,113,113,0.2);
+      color: #fecaca;
+      border: 1px solid rgba(248,113,113,0.45);
+    }
+
+    .id-col {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 8px 10px;     /* fixes alignment by matching all cells */
+}
+
+    table {
+  table-layout: fixed;        /* Enforces perfect alignment */
+  width: 100%;                /* Takes full panel width */
+}
+
+td, th {
+  overflow: hidden;           /* Prevents column pushing */
+  text-overflow: ellipsis;
+}
+
+
+  </style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div>🚨 Smart Accident Detection – LIVE Dashboard</div>
+  <button id="manual-refresh">Refresh Now</button>
+</div>
+
+<div class="main">
+
+  <!-- MAP (smaller now) -->
+  <div class="map-container">
+    <div class="map-title">Latest Accident Location</div>
+    <div id="map"></div>
+  </div>
+
+  <!-- INCIDENT PANEL -->
+  <div class="side-panel">
+    <div class="panel-header">Accident Feed</div>
+    <div class="refresh-info" id="refresh-info">Auto-refresh every 60 seconds</div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>User</th>
+          <th>Phone</th>
+          <th>Time</th>
+          <th>Lat</th>
+          <th>Lng</th>
+          <th>Status</th>
+        </tr>
+        </thead>
+        <tbody id="incidents-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+const dbUrl = "https://realtime-accident-updates-default-rtdb.firebaseio.com/incidents.json";
+
+const tableBody = document.getElementById("incidents-body");
+const refreshInfo = document.getElementById("refresh-info");
+
+let map = L.map("map").setView([22.5, 79.0], 4);
+let markerGroup = L.layerGroup().addTo(map);
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+async function loadIncidents() {
+
+  try {
+
+    refreshInfo.textContent = "Refreshing...";
+
+    const res = await fetch(dbUrl);
+    const data = await res.json();
+
+    tableBody.innerHTML = "";
+    markerGroup.clearLayers();
+
+    if (!data) {
+      tableBody.innerHTML = "<tr><td colspan='7'>No incidents found</td></tr>";
+      refreshInfo.textContent = "No incidents yet";
+      return;
+    }
+
+    const entries = Object.entries(data).sort((a, b) =>
+      (b[1].timestamp || 0) - (a[1].timestamp || 0)
+    );
+
+    let latest = null;
+
+    for (const [id, inc] of entries) {
+
+      const time = inc.timestamp
+        ? new Date(inc.timestamp).toLocaleString()
+        : "N/A";
+
+      const hasLoc =
+        typeof inc.lat === "number" &&
+        typeof inc.lng === "number";
+
+      const latText = hasLoc ? inc.lat.toFixed(4) : "N/A";
+      const lngText = hasLoc ? inc.lng.toFixed(4) : "N/A";
+
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td class="id-col" title="${id}">${id}</td>
+        <td>${inc.userName || "Demo User"}</td>
+        <td>${inc.phone || "-"}</td>
+        <td>${time}</td>
+        <td>${latText}</td>
+        <td>${lngText}</td>
+        <td><span class="status-badge active">${inc.status || "ACTIVE"}</span></td>
+      `;
+
+      tableBody.appendChild(tr);
+
+      if (hasLoc) {
+
+        const marker = L.marker([inc.lat, inc.lng]).addTo(markerGroup);
+
+        marker.bindPopup(
+          "<b>" + (inc.userName || "User") + "</b><br>" + time
+        );
+
+        tr.addEventListener("click", () => {
+          map.setView([inc.lat, inc.lng], 12);
+          marker.openPopup();
+        });
+
+        if (!latest) latest = { lat: inc.lat, lng: inc.lng };
+      }
+    }
+
+    if (latest) map.setView([latest.lat, latest.lng], 10);
+
+    refreshInfo.textContent =
+      "Last refreshed at " + new Date().toLocaleTimeString();
+
+  }
+
+  catch (error) {
+
+    console.error("Firebase fetch failed:", error);
+
+    refreshInfo.textContent = "Error fetching incidents";
+
+  }
+}
+
+document.getElementById("manual-refresh")
+.addEventListener("click", loadIncidents);
+
+setInterval(loadIncidents, 10000);
+
+loadIncidents();
+
+</script>
+
+</body>
+</html>
